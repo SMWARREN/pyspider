@@ -1,94 +1,96 @@
-pyspider [![Build Status]][Travis CI] [![Coverage Status]][Coverage] [![Try]][Demo]
-========
-
-A Powerful Spider(Web Crawler) System in Python. **[TRY IT NOW!][Demo]**
-
-- Write script in python with powerful API
-- Python 2&3
-- Powerful WebUI with script editor, task monitor, project manager and result viewer
-- Javascript pages supported!
-- MySQL, MongoDB, SQLite, PostgreSQL as database backend 
-- Task priority, retry, periodical, recrawl by age and more
-- Distributed architecture
-
-Documentation: [http://docs.pyspider.org/](http://docs.pyspider.org/)  
-Tutorial: [http://docs.pyspider.org/en/latest/tutorial/](http://docs.pyspider.org/en/latest/tutorial/)
-
-Sample Code 
------------
-
-```python
-from pyspider.libs.base_handler import *
-
-
-class Handler(BaseHandler):
-    crawl_config = {
-    }
-
-    @every(minutes=24 * 60)
-    def on_start(self):
-        self.crawl('http://scrapy.org/', callback=self.index_page)
-
-    @config(age=10 * 24 * 60 * 60)
-    def index_page(self, response):
-        for each in response.doc('a[href^="http"]').items():
-            self.crawl(each.attr.href, callback=self.detail_page)
-
-    def detail_page(self, response):
-        return {
-            "url": response.url,
-            "title": response.doc('title').text(),
-        }
-```
-
-[![Demo][Demo Img]][Demo]
-
-
-Installation
-------------
-
-* `pip install pyspider`
-* run command `pyspider`, visit [http://localhost:5000/](http://localhost:5000/)
-
-Quickstart: [http://docs.pyspider.org/en/latest/Quickstart/](http://docs.pyspider.org/en/latest/Quickstart/)
-
-Contribute
-----------
-
-* Use It
-* Open [Issue], send PR
-* [User Group]
-
-
-TODO
+Sean Warren's User Manual 
 ----
 
-### v0.4.0
+### v0.4.0.01 
+----
+## Added the ability to Double Click for Full Screen Mode
+## Addded UI Changes
+----
 
-- [x] local mode, load script from file.
-- [x] works as a framework (all components running in one process, no threads)
-- [ ] redis
-- [x] shell mode like `scrapy shell` 
-- [ ] a visual scraping interface like [portia](https://github.com/scrapinghub/portia)
+### pyspider/webui/static/debug.css
+----
+- [x] added an id called screen-setting
 
 
-### more
+> I added the the id called screen-setting to control the color of the text I applied to let the user know they have entered either Full Screen Mode Left or Full Screen Mode Right, to beautify the UI for its new auto-hide feature.
 
-- [ ] edit script with vim via [WebDAV](http://en.wikipedia.org/wiki/WebDAV)
-- [ ] in-browser debugger like [Werkzeug](http://werkzeug.pocoo.org/)
+### pyspider/webui/static/splitter.js
+----
+- [x] added variables AutoHideRight = false, autoHideLeft = false
+- [x] removed unnecessary if statement in MoveSplitter Function
 
+```javascript
+ // if prev panel is too small and delta is negative, block
+      if (prevSize < 100 && delta < 0) {
+        // ignore
+      } else if (elSize < 100 && delta > 0) {
+        // ignore
+      } else {
+```
+ - [x] added new function to bind double clicks on the id left-area and right-area
+
+```javascript
+$("#left-area, #right-area").bind('dblclick', function(e) {
++		var screenSize= {width: window.innerWidth || document.documentElement.clientWidth|| document.body.offsetWidth,heigh:window.						innerHeight||document.documentElement.clientHeight|| document.body.offsetHeight};	
++		var info = e;
++		
++		var selectedArea = info.currentTarget.attributes[0].nodeValue;
++		//console.log(selectedArea);
++		if (selectedArea == 'right-area'){
++			//console.log("we are in the right-area");
++				if (autoHideRight == false){
++				$("#control").css( "height", "44px");
++				$("#screen-setting").text("You are in Full Screen Mode - Right Area");
++				moveSplitter(1);
++				autoHideRight = true;}
++				else{ moveSplitter((screenSize.width)/2); autoHideRight = false;
++				$("#control").css( "height", "35px");
++				$("#screen-setting").text("");
++				}
++			}
++			else if(selectedArea =='left-area'){
++				if (autoHideLeft == false){
++					$("#control").css( "height", "44px");
++					$("#screen-setting").text("You are in Full Screen Mode - Left Area");
++					$("#save-task-btn").hide("slow");
++					moveSplitter((screenSize.width)-1);
++					autoHideLeft = true;}
++					else{ 
++					moveSplitter((screenSize.width)/2); autoHideLeft = false;
++					$("#control").css( "height", "35px");
++					$("#save-task-btn").show("slow");
++					$("#screen-setting").text("");
++					}
++						
++				//console.log("we are in the left-area");
++				}
++				else{
++					//console.log("ignore");
++					}
++	})
+```
+
+> I created a variable called screenSize to get the width of the browsers window. I also created another variable selectedArea, which uses the data coming from the binded function to tell me what area the user has pressed. Throughout
+my new function I added JQuery code which changes the appearance of the UI when you Enter Full Screen Mode. 
+
+### pyspider/webui/templates/debug.html
+----
+- [x] added a span tag to use with my jquery function on the debug template
+
+```html
+<center><span id="screen-setting"></span></center>
+```
+
+> Note: I used the depreciated center tag to implement the screen-setting information which changes dynamically.
+
+
+### pyspider/webui/static/debug.css
+----
+- [x] changed the background color
+
+> I changed the color of #python-log because our team felt like the UI didn't flow to well.
 
 License
 -------
 Licensed under the Apache License, Version 2.0
 
-
-[Build Status]:         https://img.shields.io/travis/binux/pyspider/master.svg?style=flat
-[Travis CI]:            https://travis-ci.org/binux/pyspider
-[Coverage Status]:      https://img.shields.io/coveralls/binux/pyspider.svg?branch=master&style=flat
-[Coverage]:             https://coveralls.io/r/binux/pyspider
-[Try]:                  https://img.shields.io/badge/try-pyspider-blue.svg?style=flat
-[Demo]:                 http://demo.pyspider.org/
-[Demo Img]:             https://github.com/binux/pyspider/blob/master/docs/imgs/demo.png
-[Issue]:                https://github.com/binux/pyspider/issues
-[User Group]:           https://groups.google.com/group/pyspider-users
